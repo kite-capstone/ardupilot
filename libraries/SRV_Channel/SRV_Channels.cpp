@@ -18,6 +18,7 @@
  */
 
 #include <AP_HAL/AP_HAL.h>
+#include <AP_HAL/I2CDevice.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_Scheduler/AP_Scheduler.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
@@ -78,6 +79,8 @@ bool SRV_Channels::emergency_stop;
 Bitmask<SRV_Channel::k_nr_aux_servo_functions> SRV_Channels::function_mask;
 SRV_Channels::srv_function SRV_Channels::functions[SRV_Channel::k_nr_aux_servo_functions];
 SRV_Channels::slew_list *SRV_Channels::_slew;
+AP_HAL::OwnPtr<AP_HAL::I2CDevice> SRV_Channels::arduino_servo_i2c_dev;
+uint8_t SRV_Channels::arduino_servo_i2c_buf[3];
 
 const AP_Param::GroupInfo SRV_Channels::var_info[] = {
 #if (NUM_SERVO_CHANNELS >= 1)
@@ -406,6 +409,11 @@ void SRV_Channels::init(uint32_t motor_mask, AP_HAL::RCOutput::output_mode mode)
 #ifndef HAL_BUILD_AP_PERIPH
     hal.rcout->set_dshot_rate(_singleton->dshot_rate, AP::scheduler().get_loop_rate_hz());
 #endif
+
+    // register the Arduino Nano Servo Relay I2C device
+    arduino_servo_i2c_dev = hal.i2c_mgr->get_device(0, 8); // bus 0, address 8
+    arduino_servo_i2c_dev->get_semaphore()->take_blocking();
+    arduino_servo_i2c_dev->set_retries(0);
 }
 
 /*

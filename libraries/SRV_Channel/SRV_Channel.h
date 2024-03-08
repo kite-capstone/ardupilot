@@ -360,6 +360,10 @@ public:
 
     static const struct AP_Param::GroupInfo var_info[];
 
+    // Meishur - Arduino Nano Servo Relay I2C device
+    static AP_HAL::OwnPtr<AP_HAL::I2CDevice> arduino_servo_i2c_dev;
+    static uint8_t arduino_servo_i2c_buf[3];
+
     // set the default function for a channel
     static void set_default_function(uint8_t chan, SRV_Channel::Aux_servo_function_t function);
 
