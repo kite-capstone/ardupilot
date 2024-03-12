@@ -80,7 +80,7 @@ Bitmask<SRV_Channel::k_nr_aux_servo_functions> SRV_Channels::function_mask;
 SRV_Channels::srv_function SRV_Channels::functions[SRV_Channel::k_nr_aux_servo_functions];
 SRV_Channels::slew_list *SRV_Channels::_slew;
 AP_HAL::OwnPtr<AP_HAL::I2CDevice> SRV_Channels::arduino_servo_i2c_dev;
-uint8_t SRV_Channels::arduino_servo_i2c_buf[3];
+uint8_t SRV_Channels::arduino_servo_i2c_buf[4];
 
 const AP_Param::GroupInfo SRV_Channels::var_info[] = {
 #if (NUM_SERVO_CHANNELS >= 1)

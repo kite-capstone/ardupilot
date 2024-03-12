@@ -21,6 +21,7 @@
 #include <AP_HAL/I2CDevice.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
+#include <GCS_MAVLink/GCS.h>
 #include "SRV_Channel.h"
 
 extern const AP_HAL::HAL& hal;
@@ -139,6 +140,19 @@ void SRV_Channel::calc_pwm(float output_scaled)
     } else {
         output_pwm = pwm_from_range(output_scaled);
     }
+    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "ch:%d pwm:%d", (uint8_t)function.get(),output_pwm);
+    if (function.get() == k_tiltMotorLeft ||
+        function.get() == k_tiltMotorRight ||
+        function.get() == k_rudder) {
+        
+        uint8_t* buf = SRV_Channels::arduino_servo_i2c_buf;
+        buf[0] = (uint8_t)function.get();
+        buf[1] = output_pwm & 0xff;
+        buf[2] = (output_pwm >> 8) & 0xff;
+        buf[3] = 0;
+
+        SRV_Channels::arduino_servo_i2c_dev->transfer(buf, sizeof(buf), nullptr, 0);
+    }
 }
 
 void SRV_Channel::set_output_pwm(uint16_t pwm, bool force)
@@ -146,19 +160,6 @@ void SRV_Channel::set_output_pwm(uint16_t pwm, bool force)
     if (!override_active || force) {
         output_pwm = pwm;
         have_pwm_mask |= (1U<<ch_num);
-
-        if (function.get() == k_tiltMotorLeft ||
-            function.get() == k_tiltMotorRight ||
-            function.get() == k_rudder) {
-            
-            uint8_t* buf = SRV_Channels::arduino_servo_i2c_buf;
-            buf[0] = (uint8_t)function.get();
-            buf[1] = pwm & 0xff;
-            buf[2] = (pwm >> 8) & 0xff;
-
-            SRV_Channels::arduino_servo_i2c_dev->transfer(buf, sizeof(buf), nullptr, 0);
-        }
-
     }
 }
 
